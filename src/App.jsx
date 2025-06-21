@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Search from './components/Search'
 import Spinner from './components/Spinner'
+import MoviesCards from './components/MoviesCards';
 
 const App = () => {
 
@@ -13,16 +14,19 @@ const App = () => {
       Authorization: `Bearer ${API_KEY}`
     }
   }
+   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [moviesList, setMoviesList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  // useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm])
 
-  const fetchMovies = async ()=>{
+  const fetchMovies = async (query = "")=>{
     setIsLoading(true);
     setErrorMessage('');
     try{
-      const endpoint = `${API_BASE_URL}?sort_by=popularity.desc`;
+      const endpoint = query?
+      `${API_BASE_URL}/search/movie?query=${query}`:`${API_BASE_URL}?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);  
   if(!response.ok){
       throw new Error("Error fetching movies");
@@ -44,9 +48,9 @@ const App = () => {
     }
   }
   useEffect(() => {
-  fetchMovies();
+  fetchMovies(searchTerm);
 
-  },[])
+  },[searchTerm])
   return (
     <main>
     <div className='pattern'/>
@@ -61,7 +65,7 @@ const App = () => {
         {isLoading ? (<Spinner />) : errorMessage ? (<p className="text-red-500">{errorMessage}</p>) : (
           <ul>
             {moviesList.map((movie) => (
-              <p className='text-white' key={movie.id}>{movie.title}</p>
+              <MoviesCards key={movie.id} movie={movie} />
             ))}
           </ul>
         )}
